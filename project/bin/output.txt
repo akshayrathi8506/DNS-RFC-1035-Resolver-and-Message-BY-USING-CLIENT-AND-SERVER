@@ -1,0 +1,32 @@
+Enter Host name : 
+Resolving microsoft.com
+The response contains : 
+Questions. 1
+Answers. 5
+Authoritative Servers. 0
+Additional records. 0
+
+Enter Query for nameserver: 
+server replied: 
+IP address: 
+IP : 20.103.85.33
+IP : 20.112.52.29
+IP : 20.53.203.50
+IP : 20.81.111.85
+IP : 20.84.181.62
+
+Want to check stored IPs. Pleases select (Y/N)?
+facebook.com		157.240.198.35		
+instagram.com		157.240.198.174		
+youtube.com		142.250.195.14		
+telegram.com		199.232.106.62		
+google.com		172.217.160.238		
+google.com		172.217.160.238		
+www.google.com		142.250.206.132		
+instagram.com		157.240.198.174		
+google.com		172.217.160.238		
+microsoft.com		20.103.85.33		
+		20.112.52.29		
+		20.53.203.50		
+		20.81.111.85		
+		20.84.181.62		
