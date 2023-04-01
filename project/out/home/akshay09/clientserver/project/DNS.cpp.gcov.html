@@ -1,0 +1,312 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - coverage.info - /home/akshay09/clientserver/project/DNS.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../../../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../../../index.html">top level</a> - <a href="index.html">home/akshay09/clientserver/project</a> - DNS.cpp<span style="font-size: 80%;"> (source / <a href="DNS.cpp.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">109</td>
+            <td class="headerCovTableEntry">119</td>
+            <td class="headerCovTableEntryHi">91.6 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2022-06-02 18:10:13</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">4</td>
+            <td class="headerCovTableEntry">4</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr><td><img src="../../../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : /*PROJECT: DNS resolver RFC 1035 (resolver,message)</a>
+<a name="2"><span class="lineNum">       2 </span>            :  *AUTHOR : AKSHAY RATHI,VIVEK SINGH,RAJANARASIMHA REDDY, SUBHAN SHAIK, RAVI</a>
+<a name="3"><span class="lineNum">       3 </span>            :  *VERSION: 1.0</a>
+<a name="4"><span class="lineNum">       4 </span>            :  *DATE   : 29'MAY 2022</a>
+<a name="5"><span class="lineNum">       5 </span>            :  */</a>
+<a name="6"><span class="lineNum">       6 </span>            : </a>
+<a name="7"><span class="lineNum">       7 </span>            : #include &lt;unistd.h&gt;</a>
+<a name="8"><span class="lineNum">       8 </span>            : #include &lt;iostream&gt;</a>
+<a name="9"><span class="lineNum">       9 </span>            : #include &lt;stdlib.h&gt;</a>
+<a name="10"><span class="lineNum">      10 </span>            : #include &lt;sys/socket.h&gt;</a>
+<a name="11"><span class="lineNum">      11 </span>            : #include &lt;netdb.h&gt;</a>
+<a name="12"><span class="lineNum">      12 </span>            : #include &lt;netinet/in.h&gt;</a>
+<a name="13"><span class="lineNum">      13 </span>            : #include &lt;string.h&gt;</a>
+<a name="14"><span class="lineNum">      14 </span>            : #include&lt;arpa/inet.h&gt;</a>
+<a name="15"><span class="lineNum">      15 </span>            : #include &quot;DNS.h&quot;</a>
+<a name="16"><span class="lineNum">      16 </span>            : #include &lt;fstream&gt;</a>
+<a name="17"><span class="lineNum">      17 </span>            : #include &lt;vector&gt;</a>
+<a name="18"><span class="lineNum">      18 </span>            : #include &lt;string&gt;</a>
+<a name="19"><span class="lineNum">      19 </span>            : #include &lt;sstream&gt;</a>
+<a name="20"><span class="lineNum">      20 </span>            : using namespace std;</a>
+<a name="21"><span class="lineNum">      21 </span>            : /*DESCRIPTION: By using socket client and server communicating with nameserver and the foreign server for IP address.</a>
+<a name="22"><span class="lineNum">      22 </span>            :  * INPUT     : Hostname. example: google.com</a>
+<a name="23"><span class="lineNum">      23 </span>            :  * OUTPUT    : Sucessfull</a>
+<a name="24"><span class="lineNum">      24 </span>            :  */</a>
+<a name="25"><span class="lineNum">      25 </span>            : </a>
+<a name="26"><span class="lineNum">      26 </span>            : //Type of DNS resources records</a>
+<a name="27"><span class="lineNum">      27 </span>            : </a>
+<a name="28"><span class="lineNum">      28 </span>            : #define T_A 1      //IPV4 address</a>
+<a name="29"><span class="lineNum">      29 </span>            : #define T_NS 2     //Nameserver</a>
+<a name="30"><span class="lineNum">      30 </span>            : #define T_CNAME 5  //Canonical name</a>
+<a name="31"><span class="lineNum">      31 </span>            : #define T_SOA 6    //start of authority zone</a>
+<a name="32"><span class="lineNum">      32 </span>            : #define T_PTR 12   //domain name pointer</a>
+<a name="33"><span class="lineNum">      33 </span>            : #define T_MX 15    //mail server</a>
+<a name="34"><span class="lineNum">      34 </span>            : /*</a>
+<a name="35"><span class="lineNum">      35 </span>            :  * perform a DNS query by sending a packet</a>
+<a name="36"><span class="lineNum">      36 </span>            :  * -----------------------------------RESOLVER PART ---------------------------------*/</a>
+<a name="37"><span class="lineNum">      37 </span><span class="lineCov">          1 : void DNS::ngethostbyname(unsigned char *host , int query_type)</span></a>
+<a name="38"><span class="lineNum">      38 </span>            : {</a>
+<a name="39"><span class="lineNum">      39 </span>            :     unsigned char buf[65536],*qname;</a>
+<a name="40"><span class="lineNum">      40 </span>            :     int i , s;</a>
+<a name="41"><span class="lineNum">      41 </span>            : </a>
+<a name="42"><span class="lineNum">      42 </span>            : </a>
+<a name="43"><span class="lineNum">      43 </span>            : </a>
+<a name="44"><span class="lineNum">      44 </span>            :     struct sockaddr_in dest;</a>
+<a name="45"><span class="lineNum">      45 </span>            : </a>
+<a name="46"><span class="lineNum">      46 </span><span class="lineCov">          1 :     struct DNS_HEADER *dns = NULL;</span></a>
+<a name="47"><span class="lineNum">      47 </span><span class="lineCov">          1 :     struct QUESTION *qinfo = NULL;</span></a>
+<a name="48"><span class="lineNum">      48 </span>            : </a>
+<a name="49"><span class="lineNum">      49 </span><span class="lineCov">          1 :     cout&lt;&lt;&quot;\nResolving &quot;&lt;&lt;host;</span></a>
+<a name="50"><span class="lineNum">      50 </span>            : //conneting socket with the server by using PORT NO : 53</a>
+<a name="51"><span class="lineNum">      51 </span><span class="lineCov">          1 :     s = socket(AF_INET , SOCK_DGRAM , IPPROTO_UDP);</span></a>
+<a name="52"><span class="lineNum">      52 </span><span class="lineCov">          1 :     dest.sin_family = AF_INET;</span></a>
+<a name="53"><span class="lineNum">      53 </span><span class="lineCov">          1 :     dest.sin_port = htons(53);</span></a>
+<a name="54"><span class="lineNum">      54 </span><span class="lineCov">          1 :     dest.sin_addr.s_addr = inet_addr(dns_servers[0]);</span></a>
+<a name="55"><span class="lineNum">      55 </span>            : </a>
+<a name="56"><span class="lineNum">      56 </span><span class="lineCov">          1 :     dns = (struct DNS_HEADER *)&amp;buf;</span></a>
+<a name="57"><span class="lineNum">      57 </span>            : </a>
+<a name="58"><span class="lineNum">      58 </span><span class="lineCov">          1 :     dns-&gt;id = (unsigned short) htons(getpid());</span></a>
+<a name="59"><span class="lineNum">      59 </span><span class="lineCov">          1 :     dns-&gt;qr = 0;      //This is a query</span></a>
+<a name="60"><span class="lineNum">      60 </span><span class="lineCov">          1 :     dns-&gt;opcode = 0;  //this is a standard query</span></a>
+<a name="61"><span class="lineNum">      61 </span><span class="lineCov">          1 :     dns-&gt;aa = 0;      //not authoritative</span></a>
+<a name="62"><span class="lineNum">      62 </span><span class="lineCov">          1 :     dns-&gt;tc = 0;      //this message is not truncated</span></a>
+<a name="63"><span class="lineNum">      63 </span><span class="lineCov">          1 :     dns-&gt;rd = 1;      //recursion desired</span></a>
+<a name="64"><span class="lineNum">      64 </span><span class="lineCov">          1 :     dns-&gt;ra = 0;      //recursion not available</span></a>
+<a name="65"><span class="lineNum">      65 </span><span class="lineCov">          1 :     dns-&gt;z = 0;</span></a>
+<a name="66"><span class="lineNum">      66 </span><span class="lineCov">          1 :     dns-&gt;ad = 0;</span></a>
+<a name="67"><span class="lineNum">      67 </span><span class="lineCov">          1 :     dns-&gt;cd = 0;</span></a>
+<a name="68"><span class="lineNum">      68 </span><span class="lineCov">          1 :     dns-&gt;rcode = 0;</span></a>
+<a name="69"><span class="lineNum">      69 </span><span class="lineCov">          1 :     dns-&gt;q_count = htons(1);  //Only one question</span></a>
+<a name="70"><span class="lineNum">      70 </span><span class="lineCov">          1 :     dns-&gt;ans_count = 0;</span></a>
+<a name="71"><span class="lineNum">      71 </span><span class="lineCov">          1 :     dns-&gt;auth_count = 0;</span></a>
+<a name="72"><span class="lineNum">      72 </span><span class="lineCov">          1 :     dns-&gt;add_count = 0;</span></a>
+<a name="73"><span class="lineNum">      73 </span>            :     //point to query portion</a>
+<a name="74"><span class="lineNum">      74 </span><span class="lineCov">          1 :     qname =(unsigned char*)&amp;buf[sizeof(struct DNS_HEADER)];</span></a>
+<a name="75"><span class="lineNum">      75 </span>            : </a>
+<a name="76"><span class="lineNum">      76 </span><span class="lineCov">          1 :     ChangetoDnsNameFormat(qname , host);  //calling this function to change the format of the query</span></a>
+<a name="77"><span class="lineNum">      77 </span><span class="lineCov">          1 :     qinfo =(struct QUESTION*)&amp;buf[sizeof(struct DNS_HEADER) + (strlen((const char*)qname) + 1)];</span></a>
+<a name="78"><span class="lineNum">      78 </span><span class="lineCov">          1 :     qinfo-&gt;qtype = htons( query_type );</span></a>
+<a name="79"><span class="lineNum">      79 </span><span class="lineCov">          1 :     qinfo-&gt;qclass = htons(1);</span></a>
+<a name="80"><span class="lineNum">      80 </span>            :     //sending query here</a>
+<a name="81"><span class="lineNum">      81 </span><span class="lineCov">          1 :     sendto(s,(char*)buf,sizeof(struct DNS_HEADER) + (strlen((const char*)qname)+1) + sizeof(struct QUESTION),0,(struct sockaddr*)&amp;dest,sizeof(dest));</span></a>
+<a name="82"><span class="lineNum">      82 </span><span class="lineCov">          1 :     i=sizeof(dest);</span></a>
+<a name="83"><span class="lineNum">      83 </span>            :     //receive the answer</a>
+<a name="84"><span class="lineNum">      84 </span><span class="lineCov">          1 :     recvfrom(s,(char*)buf , 65536 , 0 , (struct sockaddr*)&amp;dest , (socklen_t*)&amp;i );</span></a>
+<a name="85"><span class="lineNum">      85 </span><span class="lineCov">          1 :     dns = (struct DNS_HEADER*) buf;</span></a>
+<a name="86"><span class="lineNum">      86 </span><span class="lineCov">          1 :     cout&lt;&lt;&quot;\nThe response contains : &quot;;</span></a>
+<a name="87"><span class="lineNum">      87 </span><span class="lineCov">          1 :     cout&lt;&lt;&quot;\nQuestions. &quot;&lt;&lt;ntohs(dns-&gt;q_count);</span></a>
+<a name="88"><span class="lineNum">      88 </span><span class="lineCov">          1 :     cout&lt;&lt;&quot;\nAnswers. &quot;&lt;&lt;ntohs(dns-&gt;ans_count);</span></a>
+<a name="89"><span class="lineNum">      89 </span><span class="lineCov">          1 :     cout&lt;&lt;&quot;\nAuthoritative Servers. &quot;&lt;&lt;ntohs(dns-&gt;auth_count);</span></a>
+<a name="90"><span class="lineNum">      90 </span><span class="lineCov">          1 :     cout&lt;&lt;&quot;\nAdditional records. &quot;&lt;&lt;ntohs(dns-&gt;add_count)&lt;&lt;&quot;\n\n&quot;;</span></a>
+<a name="91"><span class="lineNum">      91 </span><span class="lineCov">          1 :     value=(ntohs(dns-&gt;ans_count));</span></a>
+<a name="92"><span class="lineNum">      92 </span><span class="lineCov">          2 : return;</span></a>
+<a name="93"><span class="lineNum">      93 </span>            : }</a>
+<a name="94"><span class="lineNum">      94 </span>            : /*</a>
+<a name="95"><span class="lineNum">      95 </span>            :  * Get the DNS servers from /etc/resolv.conf file on linux</a>
+<a name="96"><span class="lineNum">      96 </span>            :  */</a>
+<a name="97"><span class="lineNum">      97 </span><span class="lineCov">          1 : void DNS::get_dns_servers()</span></a>
+<a name="98"><span class="lineNum">      98 </span>            : {</a>
+<a name="99"><span class="lineNum">      99 </span>            :     FILE *fp;</a>
+<a name="100"><span class="lineNum">     100 </span>            :     char line[200],*p;</a>
+<a name="101"><span class="lineNum">     101 </span><span class="lineCov">          1 :     if((fp = fopen(&quot;/etc/resolv.conf&quot; , &quot;r&quot;)) == NULL)</span></a>
+<a name="102"><span class="lineNum">     102 </span>            :     {</a>
+<a name="103"><span class="lineNum">     103 </span><span class="lineNoCov">          0 :         cout&lt;&lt;&quot;\nFailed opening /etc/resolv.conf file &quot;;</span></a>
+<a name="104"><span class="lineNum">     104 </span>            :     }</a>
+<a name="105"><span class="lineNum">     105 </span>            : </a>
+<a name="106"><span class="lineNum">     106 </span><span class="lineCov">          5 :     while(fgets(line , 200 , fp))</span></a>
+<a name="107"><span class="lineNum">     107 </span>            :     {</a>
+<a name="108"><span class="lineNum">     108 </span><span class="lineCov">          4 :         if(line[0] == '#')</span></a>
+<a name="109"><span class="lineNum">     109 </span>            :         {</a>
+<a name="110"><span class="lineNum">     110 </span><span class="lineCov">          3 :             continue;</span></a>
+<a name="111"><span class="lineNum">     111 </span>            :         }</a>
+<a name="112"><span class="lineNum">     112 </span><span class="lineCov">          1 :         if(strncmp(line , &quot;nameserver&quot; , 10) == 0)</span></a>
+<a name="113"><span class="lineNum">     113 </span>            :         {</a>
+<a name="114"><span class="lineNum">     114 </span><span class="lineCov">          1 :             p = strtok(line , &quot; &quot;);</span></a>
+<a name="115"><span class="lineNum">     115 </span><span class="lineCov">          1 :             p = strtok(NULL , &quot; &quot;);</span></a>
+<a name="116"><span class="lineNum">     116 </span>            : </a>
+<a name="117"><span class="lineNum">     117 </span>            : </a>
+<a name="118"><span class="lineNum">     118 </span>            :         }</a>
+<a name="119"><span class="lineNum">     119 </span>            :     }</a>
+<a name="120"><span class="lineNum">     120 </span>            : </a>
+<a name="121"><span class="lineNum">     121 </span><span class="lineCov">          1 :     strcpy(dns_servers[0] , &quot;208.67.222.222&quot;);</span></a>
+<a name="122"><span class="lineNum">     122 </span><span class="lineCov">          1 :     strcpy(dns_servers[1] , &quot;208.67.220.220&quot;);</span></a>
+<a name="123"><span class="lineNum">     123 </span><span class="lineCov">          1 : }</span></a>
+<a name="124"><span class="lineNum">     124 </span>            : /*</a>
+<a name="125"><span class="lineNum">     125 </span>            :  *This will covert google.com to 6google3com</a>
+<a name="126"><span class="lineNum">     126 </span>            :  */</a>
+<a name="127"><span class="lineNum">     127 </span>            : </a>
+<a name="128"><span class="lineNum">     128 </span><span class="lineCov">          1 : void DNS::ChangetoDnsNameFormat(unsigned char* dns,unsigned char* host)</span></a>
+<a name="129"><span class="lineNum">     129 </span>            : {</a>
+<a name="130"><span class="lineNum">     130 </span><span class="lineCov">          1 :     int lock = 0 , i;</span></a>
+<a name="131"><span class="lineNum">     131 </span><span class="lineCov">          1 :     strcat((char*)host,&quot;.&quot;);</span></a>
+<a name="132"><span class="lineNum">     132 </span>            : </a>
+<a name="133"><span class="lineNum">     133 </span><span class="lineCov">         11 :     for(i = 0 ; i &lt; strlen((char*)host) ; i++)</span></a>
+<a name="134"><span class="lineNum">     134 </span>            :     {</a>
+<a name="135"><span class="lineNum">     135 </span><span class="lineCov">         10 :         if(host[i]=='.')</span></a>
+<a name="136"><span class="lineNum">     136 </span>            :         {</a>
+<a name="137"><span class="lineNum">     137 </span><span class="lineCov">          2 :             *dns++ = i-lock;</span></a>
+<a name="138"><span class="lineNum">     138 </span><span class="lineCov">         10 :             for(;lock&lt;i;lock++)</span></a>
+<a name="139"><span class="lineNum">     139 </span>            :             {</a>
+<a name="140"><span class="lineNum">     140 </span><span class="lineCov">          8 :         *dns++=host[lock];</span></a>
+<a name="141"><span class="lineNum">     141 </span>            :             }</a>
+<a name="142"><span class="lineNum">     142 </span><span class="lineCov">          2 :             lock++;</span></a>
+<a name="143"><span class="lineNum">     143 </span>            :         }</a>
+<a name="144"><span class="lineNum">     144 </span>            :     }</a>
+<a name="145"><span class="lineNum">     145 </span><span class="lineCov">          1 :     *dns++='\0';</span></a>
+<a name="146"><span class="lineNum">     146 </span><span class="lineCov">          1 : }</span></a>
+<a name="147"><span class="lineNum">     147 </span><span class="lineCov">          1 : void DNS::IPfromnameserver()</span></a>
+<a name="148"><span class="lineNum">     148 </span>            : {</a>
+<a name="149"><span class="lineNum">     149 </span>            : /*---------------------------------CONNECTING WITH THE NAMESERVER--------------------------------*/</a>
+<a name="150"><span class="lineNum">     150 </span>            :     int sockfd, portno, n;</a>
+<a name="151"><span class="lineNum">     151 </span>            :     struct sockaddr_in serv_addr;</a>
+<a name="152"><span class="lineNum">     152 </span>            :     struct hostent *server;</a>
+<a name="153"><span class="lineNum">     153 </span>            :     char buffer[256];</a>
+<a name="154"><span class="lineNum">     154 </span><span class="lineCov">          1 :     portno = 5001;</span></a>
+<a name="155"><span class="lineNum">     155 </span>            : </a>
+<a name="156"><span class="lineNum">     156 </span>            :     //creating socket to communicat with the nameserver and get file descriptor</a>
+<a name="157"><span class="lineNum">     157 </span><span class="lineCov">          1 :     sockfd = socket(AF_INET, SOCK_STREAM, 0);</span></a>
+<a name="158"><span class="lineNum">     158 </span>            : </a>
+<a name="159"><span class="lineNum">     159 </span><span class="lineCov">          1 :     server = gethostbyname(&quot;127.0.0.1&quot;);  // host ID</span></a>
+<a name="160"><span class="lineNum">     160 </span>            : </a>
+<a name="161"><span class="lineNum">     161 </span><span class="lineCov">          1 :     if (server == NULL) {</span></a>
+<a name="162"><span class="lineNum">     162 </span><span class="lineNoCov">          0 :         fprintf(stderr,&quot;ERROR, no such host\n&quot;);</span></a>
+<a name="163"><span class="lineNum">     163 </span><span class="lineNoCov">          0 :         exit(0);</span></a>
+<a name="164"><span class="lineNum">     164 </span>            :     }</a>
+<a name="165"><span class="lineNum">     165 </span>            : </a>
+<a name="166"><span class="lineNum">     166 </span><span class="lineCov">          1 :     bzero((char *) &amp;serv_addr, sizeof(serv_addr));</span></a>
+<a name="167"><span class="lineNum">     167 </span><span class="lineCov">          1 :     serv_addr.sin_family = AF_INET;</span></a>
+<a name="168"><span class="lineNum">     168 </span><span class="lineCov">          1 :     bcopy((char *)server-&gt;h_addr, (char *)&amp;serv_addr.sin_addr.s_addr, server-&gt;h_length);</span></a>
+<a name="169"><span class="lineNum">     169 </span><span class="lineCov">          1 :     serv_addr.sin_port = htons(portno);</span></a>
+<a name="170"><span class="lineNum">     170 </span>            : </a>
+<a name="171"><span class="lineNum">     171 </span>            : </a>
+<a name="172"><span class="lineNum">     172 </span>            : </a>
+<a name="173"><span class="lineNum">     173 </span><span class="lineCov">          1 :     if (connect(sockfd, (struct sockaddr *)&amp;serv_addr, sizeof(serv_addr)) &lt; 0) {</span></a>
+<a name="174"><span class="lineNum">     174 </span><span class="lineNoCov">          0 :         perror(&quot;ERROR while connecting&quot;);</span></a>
+<a name="175"><span class="lineNum">     175 </span><span class="lineNoCov">          0 :         exit(1);</span></a>
+<a name="176"><span class="lineNum">     176 </span>            :     }</a>
+<a name="177"><span class="lineNum">     177 </span><span class="lineCov">          1 :         cout&lt;&lt;&quot;Enter Query for nameserver: &quot;;  //taking input from user again and same as the above one</span></a>
+<a name="178"><span class="lineNum">     178 </span><span class="lineCov">          1 :         bzero(buffer,256);</span></a>
+<a name="179"><span class="lineNum">     179 </span><span class="lineCov">          1 :         cin&gt;&gt;buffer;</span></a>
+<a name="180"><span class="lineNum">     180 </span><span class="lineCov">          2 :         ofstream file1;                        //using file management system to store the data of each URL</span></a>
+<a name="181"><span class="lineNum">     181 </span><span class="lineCov">          1 :         file1.open(&quot;data.csv&quot;, ios::out | ios::app);</span></a>
+<a name="182"><span class="lineNum">     182 </span><span class="lineCov">          1 :         if (file1.is_open()) {</span></a>
+<a name="183"><span class="lineNum">     183 </span><span class="lineCov">          1 :                 file1&lt;&lt;buffer;            // storing buffer value in file</span></a>
+<a name="184"><span class="lineNum">     184 </span><span class="lineCov">          1 :         n = send(sockfd,buffer,sizeof(buffer),0);   //sending query to server and will wait for answer</span></a>
+<a name="185"><span class="lineNum">     185 </span>            : </a>
+<a name="186"><span class="lineNum">     186 </span><span class="lineCov">          1 :         if (n &lt; 0){</span></a>
+<a name="187"><span class="lineNum">     187 </span><span class="lineNoCov">          0 :             perror(&quot;socket&quot;);</span></a>
+<a name="188"><span class="lineNum">     188 </span><span class="lineNoCov">          0 :             exit(1);</span></a>
+<a name="189"><span class="lineNum">     189 </span>            :         }</a>
+<a name="190"><span class="lineNum">     190 </span><span class="lineCov">          1 :         cout&lt;&lt;&quot;\nserver replied: \n&quot;&lt;&lt;&quot;IP address: \n&quot;;  //server will send the IP address of teh query</span></a>
+<a name="191"><span class="lineNum">     191 </span><span class="lineCov">          2 :         for(int i=0;i&lt;value;i++)</span></a>
+<a name="192"><span class="lineNum">     192 </span>            :         {</a>
+<a name="193"><span class="lineNum">     193 </span><span class="lineCov">          1 :         bzero(buffer,256);</span></a>
+<a name="194"><span class="lineNum">     194 </span><span class="lineCov">          1 :         n = recv(sockfd, buffer, 255,0);    //receive the answer and output will be a query</span></a>
+<a name="195"><span class="lineNum">     195 </span>            : </a>
+<a name="196"><span class="lineNum">     196 </span><span class="lineCov">          1 :         if (n &lt; 0){</span></a>
+<a name="197"><span class="lineNum">     197 </span><span class="lineNoCov">          0 :             perror(&quot;socket&quot;);</span></a>
+<a name="198"><span class="lineNum">     198 </span><span class="lineNoCov">          0 :             exit(1);</span></a>
+<a name="199"><span class="lineNum">     199 </span>            :         }</a>
+<a name="200"><span class="lineNum">     200 </span><span class="lineCov">          1 :         cout&lt;&lt;&quot;IP : &quot;&lt;&lt;buffer&lt;&lt;&quot;\n&quot;;// storing data of IP address in file</span></a>
+<a name="201"><span class="lineNum">     201 </span><span class="lineCov">          1 :         file1&lt;&lt;&quot;,&quot;&lt;&lt;buffer&lt;&lt;endl;</span></a>
+<a name="202"><span class="lineNum">     202 </span>            :         }</a>
+<a name="203"><span class="lineNum">     203 </span><span class="lineCov">          1 :     file1.close();</span></a>
+<a name="204"><span class="lineNum">     204 </span>            :     }</a>
+<a name="205"><span class="lineNum">     205 </span>            :     char y;</a>
+<a name="206"><span class="lineNum">     206 </span><span class="lineCov">          1 :     cout&lt;&lt;&quot;\nWant to check stored IPs. Pleases select (Y/N)?&quot;;</span></a>
+<a name="207"><span class="lineNum">     207 </span><span class="lineCov">          1 :     cin&gt;&gt;y;</span></a>
+<a name="208"><span class="lineNum">     208 </span><span class="lineCov">          1 :     if(y=='y')</span></a>
+<a name="209"><span class="lineNum">     209 </span>            :     {</a>
+<a name="210"><span class="lineNum">     210 </span><span class="lineCov">          2 :     ifstream file;</span></a>
+<a name="211"><span class="lineNum">     211 </span><span class="lineCov">          2 :                 vector&lt;vector&lt;string&gt;&gt; content;</span></a>
+<a name="212"><span class="lineNum">     212 </span><span class="lineCov">          2 :                 vector&lt;string&gt; row;</span></a>
+<a name="213"><span class="lineNum">     213 </span><span class="lineCov">          2 :                 string line1, word;</span></a>
+<a name="214"><span class="lineNum">     214 </span><span class="lineCov">          1 :                 file.open(&quot;data.csv&quot;, ios::in);</span></a>
+<a name="215"><span class="lineNum">     215 </span><span class="lineCov">         17 :                 while (getline(file, line1)) {</span></a>
+<a name="216"><span class="lineNum">     216 </span><span class="lineCov">         16 :                     row.clear();</span></a>
+<a name="217"><span class="lineNum">     217 </span><span class="lineCov">         32 :                     stringstream str(line1);</span></a>
+<a name="218"><span class="lineNum">     218 </span><span class="lineCov">         48 :                     while (getline(str, word, ','))</span></a>
+<a name="219"><span class="lineNum">     219 </span><span class="lineCov">         32 :                         row.push_back(word);</span></a>
+<a name="220"><span class="lineNum">     220 </span><span class="lineCov">         16 :                     content.push_back(row);</span></a>
+<a name="221"><span class="lineNum">     221 </span>            :                 }</a>
+<a name="222"><span class="lineNum">     222 </span><span class="lineCov">         17 :                 for (int i = 0; i &lt; content.size(); ++i) {</span></a>
+<a name="223"><span class="lineNum">     223 </span><span class="lineCov">         48 :                     for (int j = 0; j &lt; content[i].size(); ++j) {</span></a>
+<a name="224"><span class="lineNum">     224 </span><span class="lineCov">         32 :                         cout&lt;&lt;content[i][j]&lt;&lt;&quot;\t\t&quot;;</span></a>
+<a name="225"><span class="lineNum">     225 </span>            : </a>
+<a name="226"><span class="lineNum">     226 </span>            :                     }</a>
+<a name="227"><span class="lineNum">     227 </span><span class="lineCov">         16 :                     cout&lt;&lt;endl;</span></a>
+<a name="228"><span class="lineNum">     228 </span>            : </a>
+<a name="229"><span class="lineNum">     229 </span>            :                 }</a>
+<a name="230"><span class="lineNum">     230 </span><span class="lineCov">          1 :                 file.close();</span></a>
+<a name="231"><span class="lineNum">     231 </span>            :     }</a>
+<a name="232"><span class="lineNum">     232 </span>            :     else</a>
+<a name="233"><span class="lineNum">     233 </span>            :     {</a>
+<a name="234"><span class="lineNum">     234 </span><span class="lineNoCov">          0 :         cout&lt;&lt;&quot;\nExit successfully\n&quot;;</span></a>
+<a name="235"><span class="lineNum">     235 </span>            :     }</a>
+<a name="236"><span class="lineNum">     236 </span><span class="lineCov">          1 : }</span></a>
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.14</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

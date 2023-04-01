@@ -1,0 +1,40 @@
+/*PROJECT: DNS resolver RFC 1035 (resolver,message)
+ *AUTHOR : AKSHAY RATHI,VIVEK SINGH,RAJANARASIMHA REDDY, SUBHAN SHAIK, RAVI
+ *VERSION: 1.0
+ *DATE   : 29'MAY 2022
+ */
+
+#include <unistd.h>       // to get getpid()
+#include <iostream>       // for input and output
+#include <stdlib.h>       // this isthe standard lib.
+#include <sys/socket.h>   // for socket use
+#include <netdb.h>
+#include <netinet/in.h>
+#include <string.h>       // for strlen (string manipulation)
+#include<arpa/inet.h>     // to use inet_addr,inet_ntoa,ntohs etc
+#include "DNS.h"          //DNS header file
+using namespace std;
+/*DESCRIPTION: By using socket client and server communicating with nameserver and the foreign server for IP address.
+ * INPUT     : Hostname. example: google.com
+ * OUTPUT    : Sucessfull
+ */
+//Type of DNS resources records
+#define T_A 1      //IPV4 address
+#define T_NS 2     //Nameserver
+#define T_CNAME 5  //Canonical name
+#define T_SOA 6    //start of authority zone
+#define T_PTR 12   //domain name pointer
+#define T_MX 15    //mail server
+/*
+ * Main Function
+ */
+int main(int argc, char *argv[]) {
+	DNS dns;                   //creating class object
+	unsigned char hostname[100];   //to take input from user as a query
+	cout<<"Enter Host name : ";
+	cin>>hostname;
+	dns.get_dns_servers();     //calling function to connect with the foreign server
+    dns.ngethostbyname(hostname , T_A);   //sending query by calling this function
+    dns.IPfromnameserver();   //calling this function to communicate with the nameserver and for message passing
+    return 0;
+}

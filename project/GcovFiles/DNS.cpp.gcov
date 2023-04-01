@@ -1,0 +1,240 @@
+        -:    0:Source:DNS.cpp
+        -:    0:Graph:DNS.gcno
+        -:    0:Data:DNS.gcda
+        -:    0:Runs:1
+        -:    1:/*PROJECT: DNS resolver RFC 1035 (resolver,message)
+        -:    2: *AUTHOR : AKSHAY RATHI,VIVEK SINGH,RAJANARASIMHA REDDY, SUBHAN SHAIK, RAVI
+        -:    3: *VERSION: 1.0
+        -:    4: *DATE   : 29'MAY 2022
+        -:    5: */
+        -:    6:
+        -:    7:#include <unistd.h>
+        -:    8:#include <iostream>
+        -:    9:#include <stdlib.h>
+        -:   10:#include <sys/socket.h>
+        -:   11:#include <netdb.h>
+        -:   12:#include <netinet/in.h>
+        -:   13:#include <string.h>
+        -:   14:#include<arpa/inet.h>
+        -:   15:#include "DNS.h"
+        -:   16:#include <fstream>
+        -:   17:#include <vector>
+        -:   18:#include <string>
+        -:   19:#include <sstream>
+        -:   20:using namespace std;
+        -:   21:/*DESCRIPTION: By using socket client and server communicating with nameserver and the foreign server for IP address.
+        -:   22: * INPUT     : Hostname. example: google.com
+        -:   23: * OUTPUT    : Sucessfull
+        -:   24: */
+        -:   25:
+        -:   26://Type of DNS resources records
+        -:   27:
+        -:   28:#define T_A 1      //IPV4 address
+        -:   29:#define T_NS 2     //Nameserver
+        -:   30:#define T_CNAME 5  //Canonical name
+        -:   31:#define T_SOA 6    //start of authority zone
+        -:   32:#define T_PTR 12   //domain name pointer
+        -:   33:#define T_MX 15    //mail server
+        -:   34:/*
+        -:   35: * perform a DNS query by sending a packet
+        -:   36: * -----------------------------------RESOLVER PART ---------------------------------*/
+        1:   37:void DNS::ngethostbyname(unsigned char *host , int query_type)
+        -:   38:{
+        -:   39:    unsigned char buf[65536],*qname;
+        -:   40:    int i , s;
+        -:   41:
+        -:   42:
+        -:   43:
+        -:   44:    struct sockaddr_in dest;
+        -:   45:
+        1:   46:    struct DNS_HEADER *dns = NULL;
+        1:   47:    struct QUESTION *qinfo = NULL;
+        -:   48:
+        1:   49:    cout<<"\nResolving "<<host;
+        -:   50://conneting socket with the server by using PORT NO : 53
+        1:   51:    s = socket(AF_INET , SOCK_DGRAM , IPPROTO_UDP);
+        1:   52:    dest.sin_family = AF_INET;
+        1:   53:    dest.sin_port = htons(53);
+        1:   54:    dest.sin_addr.s_addr = inet_addr(dns_servers[0]);
+        -:   55:
+        1:   56:    dns = (struct DNS_HEADER *)&buf;
+        -:   57:
+        1:   58:    dns->id = (unsigned short) htons(getpid());
+        1:   59:    dns->qr = 0;      //This is a query
+        1:   60:    dns->opcode = 0;  //this is a standard query
+        1:   61:    dns->aa = 0;      //not authoritative
+        1:   62:    dns->tc = 0;      //this message is not truncated
+        1:   63:    dns->rd = 1;      //recursion desired
+        1:   64:    dns->ra = 0;      //recursion not available
+        1:   65:    dns->z = 0;
+        1:   66:    dns->ad = 0;
+        1:   67:    dns->cd = 0;
+        1:   68:    dns->rcode = 0;
+        1:   69:    dns->q_count = htons(1);  //Only one question
+        1:   70:    dns->ans_count = 0;
+        1:   71:    dns->auth_count = 0;
+        1:   72:    dns->add_count = 0;
+        -:   73:    //point to query portion
+        1:   74:    qname =(unsigned char*)&buf[sizeof(struct DNS_HEADER)];
+        -:   75:
+        1:   76:    ChangetoDnsNameFormat(qname , host);  //calling this function to change the format of the query
+        1:   77:    qinfo =(struct QUESTION*)&buf[sizeof(struct DNS_HEADER) + (strlen((const char*)qname) + 1)];
+        1:   78:    qinfo->qtype = htons( query_type );
+        1:   79:    qinfo->qclass = htons(1);
+        -:   80:    //sending query here
+        1:   81:    sendto(s,(char*)buf,sizeof(struct DNS_HEADER) + (strlen((const char*)qname)+1) + sizeof(struct QUESTION),0,(struct sockaddr*)&dest,sizeof(dest));
+        1:   82:    i=sizeof(dest);
+        -:   83:    //receive the answer
+        1:   84:    recvfrom(s,(char*)buf , 65536 , 0 , (struct sockaddr*)&dest , (socklen_t*)&i );
+        1:   85:    dns = (struct DNS_HEADER*) buf;
+        1:   86:    cout<<"\nThe response contains : ";
+        1:   87:    cout<<"\nQuestions. "<<ntohs(dns->q_count);
+        1:   88:    cout<<"\nAnswers. "<<ntohs(dns->ans_count);
+        1:   89:    cout<<"\nAuthoritative Servers. "<<ntohs(dns->auth_count);
+        1:   90:    cout<<"\nAdditional records. "<<ntohs(dns->add_count)<<"\n\n";
+        1:   91:    value=(ntohs(dns->ans_count));
+        2:   92:return;
+        -:   93:}
+        -:   94:/*
+        -:   95: * Get the DNS servers from /etc/resolv.conf file on linux
+        -:   96: */
+        1:   97:void DNS::get_dns_servers()
+        -:   98:{
+        -:   99:    FILE *fp;
+        -:  100:    char line[200],*p;
+        1:  101:    if((fp = fopen("/etc/resolv.conf" , "r")) == NULL)
+        -:  102:    {
+    #####:  103:        cout<<"\nFailed opening /etc/resolv.conf file ";
+        -:  104:    }
+        -:  105:
+        5:  106:    while(fgets(line , 200 , fp))
+        -:  107:    {
+        4:  108:        if(line[0] == '#')
+        -:  109:        {
+        3:  110:            continue;
+        -:  111:        }
+        1:  112:        if(strncmp(line , "nameserver" , 10) == 0)
+        -:  113:        {
+        1:  114:            p = strtok(line , " ");
+        1:  115:            p = strtok(NULL , " ");
+        -:  116:
+        -:  117:
+        -:  118:        }
+        -:  119:    }
+        -:  120:
+        1:  121:    strcpy(dns_servers[0] , "208.67.222.222");
+        1:  122:    strcpy(dns_servers[1] , "208.67.220.220");
+        1:  123:}
+        -:  124:/*
+        -:  125: *This will covert google.com to 6google3com
+        -:  126: */
+        -:  127:
+        1:  128:void DNS::ChangetoDnsNameFormat(unsigned char* dns,unsigned char* host)
+        -:  129:{
+        1:  130:    int lock = 0 , i;
+        1:  131:    strcat((char*)host,".");
+        -:  132:
+       11:  133:    for(i = 0 ; i < strlen((char*)host) ; i++)
+        -:  134:    {
+       10:  135:        if(host[i]=='.')
+        -:  136:        {
+        2:  137:            *dns++ = i-lock;
+       10:  138:            for(;lock<i;lock++)
+        -:  139:            {
+        8:  140:	*dns++=host[lock];
+        -:  141:            }
+        2:  142:            lock++;
+        -:  143:        }
+        -:  144:    }
+        1:  145:    *dns++='\0';
+        1:  146:}
+        1:  147:void DNS::IPfromnameserver()
+        -:  148:{
+        -:  149:/*---------------------------------CONNECTING WITH THE NAMESERVER--------------------------------*/
+        -:  150:    int sockfd, portno, n;
+        -:  151:    struct sockaddr_in serv_addr;
+        -:  152:    struct hostent *server;
+        -:  153:    char buffer[256];
+        1:  154:    portno = 5001;
+        -:  155:
+        -:  156:    //creating socket to communicat with the nameserver and get file descriptor
+        1:  157:    sockfd = socket(AF_INET, SOCK_STREAM, 0);
+        -:  158:
+        1:  159:    server = gethostbyname("127.0.0.1");  // host ID
+        -:  160:
+        1:  161:    if (server == NULL) {
+    #####:  162:        fprintf(stderr,"ERROR, no such host\n");
+    #####:  163:        exit(0);
+        -:  164:    }
+        -:  165:
+        1:  166:    bzero((char *) &serv_addr, sizeof(serv_addr));
+        1:  167:    serv_addr.sin_family = AF_INET;
+        1:  168:    bcopy((char *)server->h_addr, (char *)&serv_addr.sin_addr.s_addr, server->h_length);
+        1:  169:    serv_addr.sin_port = htons(portno);
+        -:  170:
+        -:  171:
+        -:  172:
+        1:  173:    if (connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
+    #####:  174:        perror("ERROR while connecting");
+    #####:  175:        exit(1);
+        -:  176:    }
+        1:  177:        cout<<"Enter Query for nameserver: ";  //taking input from user again and same as the above one
+        1:  178:	bzero(buffer,256);
+        1:  179:	cin>>buffer;
+        2:  180:	ofstream file1;                        //using file management system to store the data of each URL
+        1:  181:	file1.open("data.csv", ios::out | ios::app);
+        1:  182:	if (file1.is_open()) {
+        1:  183:		file1<<buffer;            // storing buffer value in file
+        1:  184:        n = send(sockfd,buffer,sizeof(buffer),0);   //sending query to server and will wait for answer
+        -:  185:
+        1:  186:        if (n < 0){
+    #####:  187:            perror("socket");
+    #####:  188:            exit(1);
+        -:  189:        }
+        1:  190:	cout<<"\nserver replied: \n"<<"IP address: \n";  //server will send the IP address of teh query
+        2:  191:	for(int i=0;i<value;i++)
+        -:  192:	{
+        1:  193:        bzero(buffer,256);
+        1:  194:        n = recv(sockfd, buffer, 255,0);    //receive the answer and output will be a query
+        -:  195:
+        1:  196:        if (n < 0){
+    #####:  197:            perror("socket");
+    #####:  198:            exit(1);
+        -:  199:        }
+        1:  200:	cout<<"IP : "<<buffer<<"\n";// storing data of IP address in file
+        1:  201:        file1<<","<<buffer<<endl;
+        -:  202:	}
+        1:  203:    file1.close();
+        -:  204:    }
+        -:  205:    char y;
+        1:  206:    cout<<"\nWant to check stored IPs. Pleases select (Y/N)?";
+        1:  207:    cin>>y;
+        1:  208:    if(y=='y')
+        -:  209:    {
+        2:  210:    ifstream file;
+        2:  211:                vector<vector<string>> content;
+        2:  212:                vector<string> row;
+        2:  213:                string line1, word;
+        1:  214:                file.open("data.csv", ios::in);
+       17:  215:                while (getline(file, line1)) {
+       16:  216:                    row.clear();
+       32:  217:                    stringstream str(line1);
+       48:  218:                    while (getline(str, word, ','))
+       32:  219:                        row.push_back(word);
+       16:  220:                    content.push_back(row);
+        -:  221:                }
+       17:  222:                for (int i = 0; i < content.size(); ++i) {
+       48:  223:                    for (int j = 0; j < content[i].size(); ++j) {
+       32:  224:                        cout<<content[i][j]<<"\t\t";
+        -:  225:
+        -:  226:                    }
+       16:  227:                    cout<<endl;
+        -:  228:
+        -:  229:                }
+        1:  230:		file.close();
+        -:  231:    }
+        -:  232:    else
+        -:  233:    {
+    #####:  234:	cout<<"\nExit successfully\n";
+        -:  235:    }
+        1:  236:}
